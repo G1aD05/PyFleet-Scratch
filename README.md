@@ -6,3 +6,5 @@ add an option that doesn't require AI)
 First you need to clone this repo, once that's done, go to the **PyFleetScratch** folder and run `uv sync` (install uv [here](https://docs.astral.sh/uv/#installation)) that will install all packages 
 listed in the **uv.lock** file, then run `source .venv/bin/activate`, now that you have your virtual environment activated, run this command `export HF_API_KEY="your api key"` 
 now you should be able to use `uv run cli.py` and a menu should show up after it's done initializing.
+> [!NOTE]
+> I have no idea if this works on windows
