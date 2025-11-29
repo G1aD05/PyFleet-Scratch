@@ -18,11 +18,11 @@ with open("preferences.json", 'r') as f:
 
 moderator = pipeline("text-classification", model="unitary/toxic-bert")  # Moderator for the AI's output
 
-PROJECT = data["target"]
-PROMPT = data["prompt"]
+PROJECT = data["TARGET"]
+PROMPT = data["PROMPT"]
 
 client = InferenceClient()
-console = Console()
+console = Console(force_terminal=True)
 DEBUG = data["DEBUG"]
 LOGS = data["LOGS"]
 
@@ -38,8 +38,8 @@ def get_new_values():
 
     DEBUG = data["DEBUG"]
     LOGS = data["LOGS"]
-    PROJECT = data["target"]
-    PROMPT = data["prompt"]
+    PROJECT = data["TARGET"]
+    PROMPT = data["PROMPT"]
 
 
 def moderate(text: str) -> bool:
@@ -63,7 +63,7 @@ def mprint(*text, _type: Optional[str] = "DEBUG"):
             if DEBUG:
                 console.print(f"[green bold][{_type}][/green bold] {msg}")
         elif _type == "INFO":
-            console.print(f"[bold][{_type}][/bold] {msg}")
+            console.print(f"[bold white][{_type}][/bold white] [white]{msg}[/white]")
         elif _type == "ERROR":
             console.print(f"[red bold][{_type}][/red bold] {msg}")
         elif _type == "WARNING":
