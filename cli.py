@@ -95,20 +95,23 @@ def main():
             match _choice:
                 case "DEBUG":
                     _options = ["True", "False", "CANCEL"]
-                    _choice = curses.wrapper(lambda stdscr: choice(stdscr, _options, menu="SELECT VALUE:"))
+                    info = f"\nCURRENT VALUE: {_preferences["DEBUG"]}"
+                    _choice = curses.wrapper(lambda stdscr: choice(stdscr, _options, menu="SELECT VALUE:", info=info))
                     if _choice == "CANCEL":
                         return
                     else:
                         _preferences["DEBUG"] = True if _choice == "True" else False
                 case "LOGS":
                     _options = ["True", "False", "CANCEL"]
-                    _choice = curses.wrapper(lambda stdscr: choice(stdscr, _options, menu="SELECT VALUE:"))
+                    info = f"\nCURRENT VALUE: {_preferences["LOGS"]}"
+                    _choice = curses.wrapper(lambda stdscr: choice(stdscr, _options, menu="SELECT VALUE:", info=info))
                     if _choice == "CANCEL":
                         return
                     else:
                         _preferences["LOGS"] = True if _choice == "True" else False
                 case "TARGET":
                     try:
+                        print(f"CURRENT VALUE: {_preferences["TARGET"]}")
                         _choice = int(input("ENTER A PROJECT ID: "))
                     except ValueError:
                         print("NOT A VALID INTEGER")
@@ -116,6 +119,7 @@ def main():
                     _preferences["TARGET"] = _choice
 
                 case "PROMPT":
+                    print(f"CURRENT VALUE: {_preferences["PROMPT"]}")
                     _choice = input("ENTER THE AI's PROMPT (USE %u FOR USERNAME AND %c FOR COMMENT): ")
                     _preferences["PROMPT"] = _choice
                 case "CANCEL":
@@ -125,11 +129,12 @@ def main():
                 json.dump(_preferences, file, indent=4)
             clear()
 
-        def choice(stdscr, choices, _banner: Optional[str] = banner, menu: Optional[str] = "MENU:"):
+        def choice(stdscr, choices, _banner: Optional[str] = banner, menu: Optional[str] = "MENU:", info: Optional[str] = ""):
             curses.curs_set(0)
             stdscr.keypad(True)
             curses.start_color()
             current = 0
+            row = 0
 
             banner_lines = _banner.splitlines()
             banner_height = len(banner_lines)
@@ -158,6 +163,7 @@ def main():
                     else:
                         stdscr.addstr(row, 2, text)
 
+                stdscr.addstr(row + 1, 0, info)
                 stdscr.refresh()
 
                 key = stdscr.getch()
