@@ -1,0 +1,20 @@
+{
+    "PROMPT": "A user named %u has posted a comment that says this \"%c\", respond to it as if you were british",
+    "DEBUG": true,
+    "LOGS": true,
+    "TARGET": 1206423208,
+    "BOT TYPE": "MANUAL",
+    "OUTPUTS": [
+        "Please follow me :)"
+    ],
+    "BOTS": [
+        [
+            "helloworld784",
+            "QXwNPQh9VxyH8JTYA#gvR!@cH"
+        ],
+        [
+            "67gyatt6767",
+            "PD9gB^v%Be9x^Ftg$dwq31Xh#"
+        ]
+    ]
+}
