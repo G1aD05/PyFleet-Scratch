@@ -1,10 +1,6 @@
 # OS junk
 .DS_Store
 
-# Private files
-Windows/logins.txt
-macOS/logins.txt
-
 # IDE junk
 .idea/
 
@@ -13,3 +9,7 @@ macOS/logins.txt
 
 # Python stuff
 __pycache__/
+
+# Private files
+Unix/preferences.json
+Windows/preferences.json

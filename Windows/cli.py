@@ -5,11 +5,14 @@ from bot import bot
 import json
 import threading
 from time import sleep as wait
-from pathlib import Path
 import curses
 from typing import Optional
 from rich.console import Console
 import os
+from ban_check import check
+from scratchattach import login as __login
+from scratchattach.utils.exceptions import LoginFailure
+from manual_bot import manual_bot
 
 banner: str = pyfiglet.figlet_format("PyFleet Scratch", font="slant")
 threads = []
@@ -29,19 +32,39 @@ wait(1)
 
 def main():
     try:
+        def check_bots():
+            _options = ["CHECK LOADED BOTS", "CANCEL"]
+            _choice = curses.wrapper(lambda stdscr: choice(stdscr, _options, menu="CHECK BOTS:"))
+            if _choice == "CHECK LOADED BOTS":
+                with open("preferences.json", 'r') as file:
+                    _preferences = json.load(file)
+                    logins = _preferences["BOTS"]
+
+                for _login in logins:
+                    thread = threading.Thread(target=check, args=(_login[0], _login[1]))
+                    thread.start()
+                input("PRESS 'ENTER' TO CONTINUE\n")
+            clear()
+
         def fire_bots():
             _options = ["FIRE LOADED BOTS", "CANCEL"]
             _choice = curses.wrapper(lambda stdscr: choice(stdscr, _options, menu="FIRE BOTS:"))
 
             if _choice == "FIRE LOADED BOTS":
-                console.print("THE BOTS WILL START IN [bold white]5[/bold white] SECONDS\n[bold green]>TO STOP BOTS PRESS ENTER<[/bold green]")
+                console.print(
+                    "THE BOTS WILL START IN [bold white]5[/bold white] SECONDS\n[bold green]>TO STOP BOTS PRESS ENTER<[/bold green]"
+                )
                 wait(5)
-                with open("logins.txt", 'r') as file:
-                    logins = file.read().split("\n")
+                with open("preferences.json", 'r') as file:
+                    _preferences = json.load(file)
+                    logins = _preferences["BOTS"]
+                    bot_type = _preferences["BOT TYPE"]
 
                 for _login in logins:
-                    login = _login.split(" ")
-                    thread = threading.Thread(target=bot, args=(login[0], login[1], stop_event))
+                    thread = threading.Thread(
+                        target=bot if bot_type == "AI" else manual_bot,
+                        args=(_login[0], _login[1], stop_event)
+                    )
                     thread.start()
                     threads.append(thread)
 
@@ -59,34 +82,33 @@ def main():
                 return
 
         def load_bots():
-            _options = ["ENTER FILE PATH", "CANCEL"]
+            _options = ["ADD BOTS", "CANCEL"]
             _choice = curses.wrapper(lambda stdscr: choice(stdscr, _options, menu="LOAD BOTS:"))
+            if _choice == "ADD BOTS":
+                username = input("USERNAME: ")
+                password = input("PASSWORD: ")
 
-            if _choice == "ENTER FILE PATH":
-                path = Path(input("\nPLEASE ENTER A FILE PATH: ")).expanduser()
-
-                if not path.name == '':
-                    extension = path.suffix
-                    if extension == ".txt":
-                        with open(path, 'r') as file:
-                            contents = file.read()
-
-                        with open("logins.txt", 'w') as file:
-                            file.write(contents)
-                        clear()
-                    else:
-                        print("THE FILE THAT WAS PROVIDED IS NOT A TEXT FILE")
-                        wait(1)
-                        clear()
-                else:
-                    print("NO FILE CHOSEN")
+                try:
+                    __login(username, password)
+                except LoginFailure:
+                    print("INVALID ACCOUNT CREDENTIALS")
                     wait(1)
                     clear()
+                    return
+
+                credentials = [username, password]
+                with open("preferences.json", 'r+') as file:
+                    _preferences = json.load(file)
+                    _preferences["BOTS"].append(credentials)
+                    file.seek(0)
+                    json.dump(_preferences, file, indent=4)
+                    file.truncate()
+                clear()
             else:
                 return
 
         def preferences():
-            _options = ["DEBUG", "LOGS", "TARGET", "PROMPT", "CANCEL"]
+            _options = ["DEBUG", "LOGS", "TARGET", "PROMPT", "BOT TYPE", "OUTPUTS", "CANCEL"]
             _choice = curses.wrapper(lambda stdscr: choice(stdscr, _options, menu="PREFERENCES:"))
 
             with open("preferences.json", 'r') as file:
@@ -99,16 +121,14 @@ def main():
                     _choice = curses.wrapper(lambda stdscr: choice(stdscr, _options, menu="SELECT VALUE:", info=info))
                     if _choice == "CANCEL":
                         return
-                    else:
-                        _preferences["DEBUG"] = True if _choice == "True" else False
+                    _preferences["DEBUG"] = True if _choice == "True" else False
                 case "LOGS":
                     _options = ["True", "False", "CANCEL"]
                     info = f"\nCURRENT VALUE: {_preferences["LOGS"]}"
                     _choice = curses.wrapper(lambda stdscr: choice(stdscr, _options, menu="SELECT VALUE:", info=info))
                     if _choice == "CANCEL":
                         return
-                    else:
-                        _preferences["LOGS"] = True if _choice == "True" else False
+                    _preferences["LOGS"] = True if _choice == "True" else False
                 case "TARGET":
                     try:
                         print(f"CURRENT VALUE: {_preferences["TARGET"]}")
@@ -121,7 +141,21 @@ def main():
                 case "PROMPT":
                     print(f"CURRENT VALUE: {_preferences["PROMPT"]}")
                     _choice = input("ENTER THE AI's PROMPT (USE %u FOR USERNAME AND %c FOR COMMENT): ")
-                    _preferences["PROMPT"] = _choice
+                    if not _choice == "CANCEL":
+                        _preferences["PROMPT"] = _choice
+                case "BOT TYPE":
+                    _options = ["AI", "MANUAL", "CANCEL"]
+                    info = f"\nCURRENT VALUE: {_preferences["BOT TYPE"]}"
+                    _choice = curses.wrapper(lambda stdscr: choice(stdscr, _options, menu="SELECT VALUE:", info=info))
+                    if _choice == "CANCEL":
+                        return
+                    _preferences["BOT TYPE"] = _choice
+                case "OUTPUTS":
+                    print(f"CURRENT VALUE: {_preferences["OUTPUTS"]}")
+                    _choice = input("ENTER AN OUTPUT FOR THE MANUAL BOT (TYPE CANCEL TO CANCEL): ")
+                    if not _choice == "CANCEL":
+                        _preferences["OUTPUTS"].append(_choice)
+
                 case "CANCEL":
                     return
 
@@ -129,7 +163,8 @@ def main():
                 json.dump(_preferences, file, indent=4)
             clear()
 
-        def choice(stdscr, choices, _banner: Optional[str] = banner, menu: Optional[str] = "MENU:", info: Optional[str] = ""):
+        def choice(stdscr, choices, _banner: Optional[str] = banner, menu: Optional[str] = "MENU:",
+                   info: Optional[str] = ""):
             curses.curs_set(0)
             stdscr.keypad(True)
             curses.start_color()
@@ -175,7 +210,7 @@ def main():
                     return choices[current]
 
         def cli():
-            _options = ["LOAD BOTS", "FIRE BOTS", "PREFERENCES", "EXIT"]
+            _options = ["LOAD BOTS", "FIRE BOTS", "PREFERENCES", "CHECK BOTS", "EXIT"]
             while True:
                 _choice = curses.wrapper(lambda stdscr: choice(stdscr, _options))
                 match _choice:
@@ -185,6 +220,8 @@ def main():
                         fire_bots()
                     case "PREFERENCES":
                         preferences()
+                    case "CHECK BOTS":
+                        check_bots()
                     case "EXIT":
                         exit()
 
