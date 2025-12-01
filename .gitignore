@@ -11,5 +11,4 @@
 __pycache__/
 
 # Private files
-Unix/preferences.json
-Windows/preferences.json
+src/preferences.json
