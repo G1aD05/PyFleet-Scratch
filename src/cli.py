@@ -70,6 +70,7 @@ def main():
                 if all(not x for x in outputs) and bot_type == "MANUAL":
                     print("NO ITEMS IN OUTPUTS")
                     wait(2)
+                    clear()
                     return
 
                 for _login in logins:
