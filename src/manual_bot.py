@@ -26,7 +26,7 @@ def get_new_values():
     Gets the new values from preferences.json and sets the variables to those values
     :return:
     """
-    global PROJECT, PROMPT, DEBUG, LOGS, data
+    global PROJECT, PROMPT, DEBUG, LOGS, OUTPUTS, data
     with open("preferences.json", 'r') as file:
         data = json.load(file)
 
@@ -34,6 +34,7 @@ def get_new_values():
     LOGS = data["LOGS"]
     PROJECT = data["TARGET"]
     PROMPT = data["PROMPT"]
+    OUTPUTS = data["OUTPUTS"]
 
 
 def mprint(*text, _type: Optional[str] = "DEBUG"):
