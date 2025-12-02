@@ -18,6 +18,12 @@ banner: str = pyfiglet.figlet_format("PyFleet Scratch", font="slant")
 threads = []
 stop_event = threading.Event()
 console = Console()
+__preferences = {"PROMPT": "PROMPT", "DEBUG": True, "LOGS": True, "TARGET": 1, "BOT TYPE": "MANUAL", "OUTPUTS": [],
+                 "BOTS": []}
+
+if not os.path.exists("preferences.json"):
+    with open('preferences.json', 'w') as f:
+        json.dump(__preferences, f)
 
 
 def clear():
