@@ -240,7 +240,7 @@ def main():
 
         cli()
     except KeyboardInterrupt:
-        main()
+        return
 
 
 if __name__ == "__main__":
