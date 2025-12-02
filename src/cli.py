@@ -59,6 +59,12 @@ def main():
                     _preferences = json.load(file)
                     logins = _preferences["BOTS"]
                     bot_type = _preferences["BOT TYPE"]
+                    outputs = _preferences["OUTPUTS"]
+
+                if all(not x for x in outputs) and bot_type == "MANUAL":
+                    print("NO ITEMS IN OUTPUTS")
+                    wait(2)
+                    return
 
                 for _login in logins:
                     thread = threading.Thread(
