@@ -61,7 +61,7 @@ def mprint(*text, _type: Optional[str] = "DEBUG"):
             console.print(f"[{_type}] {msg}")
 
 
-def manual_bot(username, password, stop_event):
+def manual_bot(username: str, password: str, stop_event):
     """
     Creates a scratch bot
 
@@ -95,7 +95,7 @@ def manual_bot(username, password, stop_event):
             session.connect_user(comment_object.author_name).follow()
 
             try:
-                project.post_comment(random.choice(OUTPUTS))
+                project.post_comment(random.choice(OUTPUTS) + str(random.randint(0, 1000)))
             except CommentPostFailure:
                 mprint(
                     f"{username} is banned or muted",
