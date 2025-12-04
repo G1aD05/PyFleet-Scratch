@@ -19,7 +19,7 @@ threads = []
 stop_event = threading.Event()
 console = Console()
 __preferences = {"PROMPT": "PROMPT", "DEBUG": True, "LOGS": True, "TARGET": 1, "BOT TYPE": "MANUAL", "OUTPUTS": [],
-                 "BOTS": []}
+                 "BOTS": [], "API KEY": ""}
 
 if not os.path.exists("config.json"):
     with open('config.json', 'w') as f:
@@ -252,6 +252,22 @@ def main():
             This just gets the selected option then runs the corresponding function
             :return:
             """
+            with open("config.json", 'r') as file:
+                data = json.load(file)
+            if data["API KEY"] == "":
+                _options = ["ENTER HUGGINGFACE API KEY", "SKIP", "EXIT"]
+                _choice = curses.wrapper(lambda stdscr: choice(stdscr, _options, menu="SETUP:"))
+                match _choice:
+                    case "ENTER HUGGINGFACE API KEY":
+                        key = input("API KEY: ")
+                        data["API KEY"] = key
+                        with open("config.json", 'w') as file:
+                            json.dump(data, file, indent=4)
+                    case "SKIP":
+                        pass
+                    case "EXIT":
+                        exit()
+
             _options = ["LOAD BOTS", "FIRE BOTS", "PREFERENCES", "CHECK BOTS", "EXIT"]
             while True:
                 _choice = curses.wrapper(lambda stdscr: choice(stdscr, _options))
