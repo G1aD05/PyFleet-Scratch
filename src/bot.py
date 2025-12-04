@@ -155,6 +155,10 @@ def bot(username, password, stop_event):
 
             try:
                 if not moderate(response):
+                    mprint(
+                        f"REPLIED TO {comment_object.author_name} WITH {response}",
+                        _type="INFO"
+                    )
                     project.reply_comment(response[0:500].strip(), parent_id=comment_object.id)
                 else:
                     mprint(
