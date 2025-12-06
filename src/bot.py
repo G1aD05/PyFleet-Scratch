@@ -9,6 +9,7 @@ from typing import Optional
 import json
 from scratchattach.utils.exceptions import ProjectNotFound
 import html
+
 print("INITIALIZING PyTorch")
 from transformers import pipeline
 
@@ -16,7 +17,6 @@ warnings.filterwarnings('ignore',
                         category=scratch.LoginDataWarning)  # Makes the LoginDataWarning from scratchattach not show
 with open("config.json", 'r') as f:
     data = json.load(f)
-
 
 moderator = pipeline("text-classification", model="unitary/toxic-bert")  # Moderator for the AI's output
 
