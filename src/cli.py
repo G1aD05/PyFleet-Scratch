@@ -225,7 +225,7 @@ def main():
                     return
 
             with open("config.json", 'w') as file:
-                json.dump(_preferences, file, indent=4)
+                json.dump(_preferences, file, indent=2)
             clear()
 
         def choice(stdscr, choices, _banner: Optional[str] = banner, menu: Optional[str] = "MENU:",
