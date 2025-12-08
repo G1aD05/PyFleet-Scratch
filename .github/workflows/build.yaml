@@ -2,6 +2,9 @@ name: Build Nuitka Executables
 
 on: [push, pull_request]
 
+permissions:
+  contents: write   # allow workflow to push commits
+
 jobs:
   build-windows:
     runs-on: windows-latest
