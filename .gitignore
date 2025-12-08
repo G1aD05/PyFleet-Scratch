@@ -18,3 +18,4 @@ testing.py
 src/*.dist
 src/*.build
 testing/
+executables/
