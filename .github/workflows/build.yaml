@@ -3,40 +3,27 @@ name: Build Nuitka Executables
 on: [push, pull_request]
 
 permissions:
-  contents: write   # allow workflow to push commits
+  contents: write
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest, macos-latest]
+  build-windows:
+    runs-on: windows-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           lfs: true
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install dependencies
-        run: |
-          pip install nuitka
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then pip install windows-curses; fi
+      - run: pip install nuitka windows-curses
 
-      - name: Ensure executables directory exists
+      - name: Ensure executables dir
         run: |
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            if (-Not (Test-Path build_win)) { mkdir build_win }
-          else
-            mkdir -p build_mac
-          fi
+          if (-Not (Test-Path executables/windows)) { mkdir executables/windows }
 
-      - name: Install Dependency Walker (Windows only)
-        if: matrix.os == 'windows-latest'
+      - name: Install Dependency Walker
         run: |
           $url = "https://dependencywalker.com/depends22_x64.zip"
           $zip = "$env:USERPROFILE\\depends.zip"
@@ -44,48 +31,69 @@ jobs:
           Invoke-WebRequest -Uri $url -OutFile $zip
           Expand-Archive $zip -DestinationPath $out -Force
 
-      - name: Build executable
-        run: |
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            python -m nuitka --standalone --jobs=8 --output-dir=build_win --output-filename=pyfleetscratch.exe src/pyfleetscratch.py
-          else
-            python -m nuitka --standalone --jobs=8 --output-dir=build_mac --output-filename=pyfleetscratch.bin src/pyfleetscratch.py
-          fi
+      - name: Build Windows exe
+        run: python -m nuitka --standalone --jobs=8 --output-dir=build_win --output-filename=pyfleetscratch.exe src/pyfleetscratch.py
+
+      - name: Move exe
+        run: move build_win/pyfleetscratch.exe executables/windows/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}-binary
-          path: |
-            build_win/pyfleetscratch.exe
-            build_mac/pyfleetscratch.bin
+          name: windows-binary
+          path: executables/windows/pyfleetscratch.exe
 
-  publish:
-    runs-on: ubuntu-latest
-    needs: build
+  build-macos:
+    runs-on: macos-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           lfs: true
 
-      - name: Download Windows artifact
-        uses: actions/download-artifact@v4
+      - uses: actions/setup-python@v5
         with:
-          name: windows-latest-binary
-          path: pyfleetscratch/windows
+          python-version: '3.12'
 
-      - name: Download macOS artifact
-        uses: actions/download-artifact@v4
+      - run: pip install nuitka
+
+      - name: Ensure executables dir
+        run: mkdir -p executables/macos
+
+      - name: Build macOS bin
+        run: python -m nuitka --standalone --jobs=8 --output-dir=build_mac --output-filename=pyfleetscratch.bin src/pyfleetscratch.py
+
+      - name: Move bin
+        run: mv build_mac/pyfleetscratch.bin executables/macos/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: macos-latest-binary
-          path: pyfleetscratch/macos
+          name: macos-binary
+          path: executables/macos/pyfleetscratch.bin
 
-      - name: Commit executables back to repo
+  publish:
+    runs-on: ubuntu-latest
+    needs: [build-windows, build-macos]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-binary
+          path: executables/windows
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: macos-binary
+          path: executables/macos
+
+      - name: Commit executables
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add -f pyfleetscratch/windows/pyfleetscratch.exe
-          git add -f pyfleetscratch/macos/pyfleetscratch.bin
+          git add -f executables/windows/pyfleetscratch.exe
+          git add -f executables/macos/pyfleetscratch.bin
           git commit -m "Add Windows and macOS executables"
           git push
