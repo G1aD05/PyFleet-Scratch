@@ -18,11 +18,7 @@ jobs:
         run: pip install nuitka
 
       - name: Build Windows executable
-        run: |
-          python -m nuitka --standalone --jobs=8 \
-            --output-dir=PyFleetScratch/executables \
-            --output-filename=pyfleetscratch.exe \
-            pyfleetscratch.py
+        run: python -m nuitka --standalone --jobs=8 --output-dir=PyFleetScratch/executables --output-filename=pyfleetscratch.exe src/pyfleetscratch.py
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
@@ -45,11 +41,7 @@ jobs:
         run: pip install nuitka
 
       - name: Build macOS executable
-        run: |
-          python -m nuitka --standalone --jobs=8 \
-            --output-dir=PyFleetScratch/executables \
-            --output-filename=pyfleetscratch.bin \
-            pyfleetscratch.py
+        run: python -m nuitka --standalone --jobs=8 --output-dir=PyFleetScratch/executables --output-filename=pyfleetscratch.bin src/pyfleetscratch.py
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
